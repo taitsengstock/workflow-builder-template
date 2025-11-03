@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,8 +10,17 @@ import { workflowApi } from '@/lib/workflow-api';
 export function WorkflowPrompt() {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    // Detect if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    };
+    checkMobile();
+  }, []);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +75,7 @@ export function WorkflowPrompt() {
               disabled={isGenerating}
               required
               rows={3}
-              autoFocus
+              autoFocus={!isMobile}
               className="w-full resize-none border-0 !bg-transparent p-4 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>

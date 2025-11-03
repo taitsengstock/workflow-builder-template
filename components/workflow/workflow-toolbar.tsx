@@ -4,6 +4,7 @@ import { useAtom, useSetAtom } from 'jotai';
 import { Play, Save, MoreVertical, Trash2, Pencil, Loader2, Undo2, Redo2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -62,6 +63,15 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
   const redo = useSetAtom(redoAtom);
   const [canUndo] = useAtom(canUndoAtom);
   const [canRedo] = useAtom(canRedoAtom);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Detect if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    };
+    checkMobile();
+  }, []);
 
   const handleExecute = async () => {
     if (!currentWorkflowId) {
@@ -193,7 +203,7 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
       onBlur={handleSaveWorkflowName}
       onKeyDown={handleKeyDown}
       className="h-8 w-64"
-      autoFocus
+      autoFocus={!isMobile}
     />
   ) : (
     <div className="group flex items-center gap-2">
