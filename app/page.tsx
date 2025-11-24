@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { AIPrompt } from "@/components/ai-elements/prompt";
 import { WorkflowCanvas } from "@/components/workflow/workflow-canvas";
 import { WorkflowToolbar } from "@/components/workflow/workflow-toolbar";
 import { api } from "@/lib/api-client";
@@ -120,6 +121,14 @@ const Home = () => {
     createWorkflowAndRedirect();
   }, [nodes, edges, router, ensureSession]);
 
+  // Handler for when AI creates a workflow
+  const handleWorkflowCreated = useCallback(
+    (newWorkflowId: string) => {
+      router.replace(`/workflows/${newWorkflowId}`);
+    },
+    [router]
+  );
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
       <main className="relative flex size-full overflow-hidden">
@@ -127,6 +136,7 @@ const Home = () => {
           <div className="relative flex-1 overflow-hidden">
             <WorkflowToolbar workflowId={currentWorkflowId ?? undefined} />
             <WorkflowCanvas showMinimap={false} />
+            <AIPrompt onWorkflowCreated={handleWorkflowCreated} />
           </div>
         </ReactFlowProvider>
       </main>

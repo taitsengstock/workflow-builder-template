@@ -54,10 +54,17 @@ async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
 
 // AI API
 export const aiApi = {
-  generate: (prompt: string) =>
+  generate: (
+    prompt: string,
+    existingWorkflow?: {
+      nodes: WorkflowNode[];
+      edges: WorkflowEdge[];
+      name?: string;
+    }
+  ) =>
     apiCall<WorkflowData>("/api/ai/generate", {
       method: "POST",
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, existingWorkflow }),
     }),
 };
 

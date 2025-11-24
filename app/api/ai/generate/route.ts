@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 
 const system = `You are a workflow automation expert. Generate a workflow based on the user's description.
 
+CRITICAL RULE: Every workflow must have EXACTLY ONE trigger node. Never create multiple triggers.
+
 Return a JSON object with this structure:
 {
   "name": "Workflow Name",
@@ -36,7 +38,19 @@ Node types and their configs:
 
 TRIGGER NODES:
 - Manual: { triggerType: "Manual" }
-- Webhook: { triggerType: "Webhook", webhookPath: "/webhooks/name", webhookMethod: "POST" }
+- Webhook: { 
+    triggerType: "Webhook", 
+    webhookPath: "/webhooks/descriptive-name", 
+    webhookMethod: "POST",
+    requestSchema: [
+      { name: "fieldName", type: "string", required: true },
+      { name: "email", type: "string", required: true }
+    ],
+    mockRequest: {
+      "fieldName": "example value",
+      "email": "user@example.com"
+    }
+  }
 - Schedule: { triggerType: "Schedule", scheduleCron: "0 9 * * *", scheduleTimezone: "America/New_York" }
 
 ACTION NODES:
@@ -45,6 +59,14 @@ ACTION NODES:
 - Create Ticket: { actionType: "Create Ticket", ticketTitle: "Title", ticketDescription: "Description", ticketPriority: "2" }
 - Database Query: { actionType: "Database Query", dbQuery: "SELECT * FROM users WHERE status = 'active'", dbTable: "users" }
 - HTTP Request: { actionType: "HTTP Request", httpMethod: "POST", endpoint: "https://api.example.com/endpoint", httpHeaders: "{}", httpBody: "{}" }
+- Generate Text: { 
+    actionType: "Generate Text", 
+    aiModel: "gpt-5", 
+    aiFormat: "object",
+    aiPrompt: "Generate a message based on the data",
+    aiSchema: "[{"name":"message","type":"string","required":true},{"name":"subject","type":"string","required":true}]"
+  }
+- Generate Image: { actionType: "Generate Image", imageModel: "openai/dall-e-3", imagePrompt: "A beautiful landscape" }
 
 CONDITION NODES:
 - { condition: "status === 'active'" }
@@ -53,6 +75,19 @@ TRANSFORM NODES:
 - { transformType: "Map Data" }
 
 IMPORTANT:
+- CRITICAL: Every workflow must have EXACTLY ONE trigger node (Manual, Webhook, or Schedule)
+- If modifying a workflow that already has a trigger, keep only one trigger
+- For Webhook triggers, ALWAYS include requestSchema (array of field definitions) and mockRequest (sample data object)
+- requestSchema should describe expected incoming data with name, type (string/number/boolean), and required fields
+- mockRequest should contain realistic example data matching the schema
+- For contact forms, include fields like: name, email, message, phone (optional)
+- CRITICAL: When generating content with AI (messages, emails, summaries, etc), ALWAYS use "Generate Text" action, NOT HTTP Request
+- For Generate Text actions, prefer aiFormat: "object" with a properly defined aiSchema for structured output
+- aiSchema should be a JSON string containing an array of field definitions: [{"name":"fieldName","type":"string|number|boolean","required":true}]
+- Use aiFormat: "text" only when generating unstructured text like long-form content
+- CRITICAL: To reference outputs from other nodes, use the template format: {{@nodeId:NodeLabel.fieldName}}
+- Template examples: {{@node-1:Generate Message.message}}, {{@trigger-node:Contact Form.email}}, {{@node-2:Query Results.count}}
+- The format is ALWAYS {{@nodeId:label.field}} where nodeId is the node's id property, label is the node's data.label, and field is the output field name
 - For Database Query actions, ALWAYS include a realistic SQL query in the "dbQuery" field
 - For HTTP Request actions, include proper httpMethod, endpoint, httpHeaders, and httpBody
 - For Send Email actions, include emailTo, emailSubject, and emailBody
@@ -71,7 +106,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { prompt } = body;
+    const { prompt, existingWorkflow } = body;
 
     if (!prompt) {
       return NextResponse.json(
@@ -80,11 +115,36 @@ export async function POST(request: Request) {
       );
     }
 
+    // Use app's API key for text-to-workflow generation
+    // (User's API keys are used for workflow execution via integrations)
+    const apiKey = process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          error: "AI API key not configured on server. Please contact support.",
+        },
+        { status: 500 }
+      );
+    }
+
+    // Build the user prompt with context about existing workflow if provided
+    let userPrompt = prompt;
+    if (existingWorkflow) {
+      userPrompt = `I have an existing workflow that I want you to MODIFY.
+
+Current workflow:
+${JSON.stringify(existingWorkflow, null, 2)}
+
+User's modification request: ${prompt}
+
+IMPORTANT: Return the COMPLETE modified workflow. If the user asks to remove nodes, return a workflow WITHOUT those nodes. If they ask to change the number of nodes, return exactly that many nodes. Do not add to the existing workflow - replace it entirely with the modified version.`;
+    }
+
     const result = streamText({
-      model: process.env.AI_MODEL || "openai/gpt-4o-mini",
+      model: "openai/gpt-5.1-instant",
       system,
-      prompt,
-      temperature: 0.7,
+      prompt: userPrompt,
     });
 
     // Convert stream to text
@@ -94,6 +154,7 @@ export async function POST(request: Request) {
     }
 
     const workflowData = JSON.parse(fullText);
+
     return NextResponse.json(workflowData);
   } catch (error) {
     console.error("Failed to generate workflow:", error);
