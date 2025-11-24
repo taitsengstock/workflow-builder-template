@@ -28,6 +28,65 @@ function encodeMessage(encoder: TextEncoder, message: object): Uint8Array {
   return encoder.encode(`${JSON.stringify(message)}\n`);
 }
 
+function shouldSkipLine(line: string): boolean {
+  const trimmed = line.trim();
+  return !trimmed || trimmed.startsWith("```");
+}
+
+function tryParseAndEnqueueOperation(
+  line: string,
+  encoder: TextEncoder,
+  controller: ReadableStreamDefaultController,
+  operationCount: number
+): number {
+  const trimmed = line.trim();
+
+  if (shouldSkipLine(line)) {
+    return operationCount;
+  }
+
+  try {
+    const operation = JSON.parse(trimmed) as Operation;
+    const newCount = operationCount + 1;
+
+    console.log(`[API] Operation ${newCount}:`, operation.op);
+
+    controller.enqueue(
+      encodeMessage(encoder, {
+        type: "operation",
+        operation,
+      })
+    );
+
+    return newCount;
+  } catch {
+    console.warn("[API] Skipping invalid JSON line:", trimmed.substring(0, 50));
+    return operationCount;
+  }
+}
+
+function processBufferLines(
+  buffer: string,
+  encoder: TextEncoder,
+  controller: ReadableStreamDefaultController,
+  operationCount: number
+): { remainingBuffer: string; newOperationCount: number } {
+  const lines = buffer.split("\n");
+  const remainingBuffer = lines.pop() || "";
+  let newOperationCount = operationCount;
+
+  for (const line of lines) {
+    newOperationCount = tryParseAndEnqueueOperation(
+      line,
+      encoder,
+      controller,
+      newOperationCount
+    );
+  }
+
+  return { remainingBuffer, newOperationCount };
+}
+
 async function processOperationStream(
   textStream: AsyncIterable<string>,
   encoder: TextEncoder,
@@ -41,67 +100,23 @@ async function processOperationStream(
     chunkCount += 1;
     buffer += chunk;
 
-    // Split by newlines and process complete lines
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || ""; // Keep incomplete line in buffer
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("```")) {
-        continue;
-      }
-
-      try {
-        const operation = JSON.parse(trimmed) as Operation;
-        operationCount += 1;
-
-        console.log(`[API] Operation ${operationCount}:`, operation.op);
-
-        // Send operation immediately
-        controller.enqueue(
-          encodeMessage(encoder, {
-            type: "operation",
-            operation,
-          })
-        );
-      } catch {
-        // Skip invalid JSON lines
-        console.warn(
-          "[API] Skipping invalid JSON line:",
-          trimmed.substring(0, 50)
-        );
-      }
-    }
+    const result = processBufferLines(
+      buffer,
+      encoder,
+      controller,
+      operationCount
+    );
+    buffer = result.remainingBuffer;
+    operationCount = result.newOperationCount;
   }
 
   // Process any remaining buffer content
-  if (buffer.trim()) {
-    const trimmed = buffer.trim();
-    if (!trimmed.startsWith("```")) {
-      try {
-        const operation = JSON.parse(trimmed) as Operation;
-        operationCount += 1;
-
-        console.log(
-          `[API] Operation ${operationCount} (from buffer):`,
-          operation.op
-        );
-
-        // Send operation immediately
-        controller.enqueue(
-          encodeMessage(encoder, {
-            type: "operation",
-            operation,
-          })
-        );
-      } catch {
-        console.warn(
-          "[API] Failed to parse remaining buffer:",
-          trimmed.substring(0, 100)
-        );
-      }
-    }
-  }
+  operationCount = tryParseAndEnqueueOperation(
+    buffer,
+    encoder,
+    controller,
+    operationCount
+  );
 
   console.log(
     `[API] Stream complete. Chunks: ${chunkCount}, Operations: ${operationCount}`

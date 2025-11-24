@@ -84,6 +84,122 @@ type StreamState = {
   currentData: WorkflowData;
 };
 
+type OperationHandler = (
+  op: StreamMessage["operation"],
+  state: StreamState
+) => void;
+
+function handleSetName(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (op?.name) {
+    state.currentData.name = op.name;
+  }
+}
+
+function handleSetDescription(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (op?.description) {
+    state.currentData.description = op.description;
+  }
+}
+
+function handleAddNode(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (op?.node) {
+    state.currentData.nodes = [
+      ...state.currentData.nodes,
+      op.node as WorkflowNode,
+    ];
+  }
+}
+
+function handleAddEdge(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (op?.edge) {
+    state.currentData.edges = [
+      ...state.currentData.edges,
+      op.edge as WorkflowEdge,
+    ];
+  }
+}
+
+function handleRemoveNode(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (op?.nodeId) {
+    state.currentData.nodes = state.currentData.nodes.filter(
+      (n) => n.id !== op.nodeId
+    );
+    state.currentData.edges = state.currentData.edges.filter(
+      (e) => e.source !== op.nodeId && e.target !== op.nodeId
+    );
+  }
+}
+
+function handleRemoveEdge(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (op?.edgeId) {
+    state.currentData.edges = state.currentData.edges.filter(
+      (e) => e.id !== op.edgeId
+    );
+  }
+}
+
+function handleUpdateNode(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (op?.nodeId && op.updates) {
+    state.currentData.nodes = state.currentData.nodes.map((n) => {
+      if (n.id === op.nodeId) {
+        return {
+          ...n,
+          ...(op.updates?.position ? { position: op.updates.position } : {}),
+          ...(op.updates?.data
+            ? { data: { ...n.data, ...op.updates.data } }
+            : {}),
+        };
+      }
+      return n;
+    });
+  }
+}
+
+const operationHandlers: Record<string, OperationHandler> = {
+  setName: handleSetName,
+  setDescription: handleSetDescription,
+  addNode: handleAddNode,
+  addEdge: handleAddEdge,
+  removeNode: handleRemoveNode,
+  removeEdge: handleRemoveEdge,
+  updateNode: handleUpdateNode,
+};
+
+function applyOperation(
+  op: StreamMessage["operation"],
+  state: StreamState
+): void {
+  if (!op?.op) {
+    return;
+  }
+
+  const handler = operationHandlers[op.op];
+  if (handler) {
+    handler(op, state);
+  }
+}
+
 function processStreamLine(
   line: string,
   onUpdate: (data: WorkflowData) => void,
@@ -97,53 +213,7 @@ function processStreamLine(
     const message = JSON.parse(line) as StreamMessage;
 
     if (message.type === "operation" && message.operation) {
-      const op = message.operation;
-
-      // Apply operation to current state
-      if (op.op === "setName" && op.name) {
-        state.currentData.name = op.name;
-      } else if (op.op === "setDescription" && op.description) {
-        state.currentData.description = op.description;
-      } else if (op.op === "addNode" && op.node) {
-        state.currentData.nodes = [
-          ...state.currentData.nodes,
-          op.node as WorkflowNode,
-        ];
-      } else if (op.op === "addEdge" && op.edge) {
-        state.currentData.edges = [
-          ...state.currentData.edges,
-          op.edge as WorkflowEdge,
-        ];
-      } else if (op.op === "removeNode" && op.nodeId) {
-        state.currentData.nodes = state.currentData.nodes.filter(
-          (n) => n.id !== op.nodeId
-        );
-        // Also remove any edges connected to this node
-        state.currentData.edges = state.currentData.edges.filter(
-          (e) => e.source !== op.nodeId && e.target !== op.nodeId
-        );
-      } else if (op.op === "removeEdge" && op.edgeId) {
-        state.currentData.edges = state.currentData.edges.filter(
-          (e) => e.id !== op.edgeId
-        );
-      } else if (op.op === "updateNode" && op.nodeId && op.updates) {
-        state.currentData.nodes = state.currentData.nodes.map((n) => {
-          if (n.id === op.nodeId) {
-            return {
-              ...n,
-              ...(op.updates?.position
-                ? { position: op.updates.position }
-                : {}),
-              ...(op.updates?.data
-                ? { data: { ...n.data, ...op.updates.data } }
-                : {}),
-            };
-          }
-          return n;
-        });
-      }
-
-      // Send update after each operation
+      applyOperation(message.operation, state);
       onUpdate({ ...state.currentData });
     } else if (message.type === "error") {
       console.error("[API Client] Error:", message.error);
