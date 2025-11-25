@@ -53,6 +53,17 @@ type WorkflowRunsProps = {
   onStartRun?: (executionId: string) => void;
 };
 
+// Helper to detect if output is a base64 image from generateImage step
+function isBase64ImageOutput(output: unknown): output is { base64: string } {
+  return (
+    typeof output === "object" &&
+    output !== null &&
+    "base64" in output &&
+    typeof (output as { base64: unknown }).base64 === "string" &&
+    (output as { base64: string }).base64.length > 100 // Base64 images are large
+  );
+}
+
 // Component for rendering individual execution log entries
 function ExecutionLogEntry({
   log,
@@ -203,9 +214,19 @@ function ExecutionLogEntry({
                     )}
                   </Button>
                 </div>
-                <pre className="overflow-auto rounded-lg border bg-muted/50 p-3 font-mono text-xs leading-relaxed">
-                  {JSON.stringify(log.output, null, 2)}
-                </pre>
+                {isBase64ImageOutput(log.output) ? (
+                  <div className="overflow-hidden rounded-lg border bg-muted/50 p-3">
+                    <img
+                      alt="Generated image"
+                      className="max-h-96 w-auto rounded"
+                      src={`data:image/png;base64,${(log.output as { base64: string }).base64}`}
+                    />
+                  </div>
+                ) : (
+                  <pre className="overflow-auto rounded-lg border bg-muted/50 p-3 font-mono text-xs leading-relaxed">
+                    {JSON.stringify(log.output, null, 2)}
+                  </pre>
+                )}
               </div>
             )}
             {log.error && (
