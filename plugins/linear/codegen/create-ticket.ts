@@ -1,8 +1,8 @@
 /**
- * Code template for Create Ticket action step
- * This is a string template used for code generation - keep as string export
+ * Code generation template for Create Ticket action
+ * Used when exporting workflows to standalone Next.js projects
  */
-export default `import { LinearClient } from '@linear/sdk';
+export const createTicketCodegenTemplate = `import { LinearClient } from '@linear/sdk';
 
 export async function createTicketStep(input: {
   ticketTitle: string;
@@ -20,3 +20,4 @@ export async function createTicketStep(input: {
   
   return issue;
 }`;
+

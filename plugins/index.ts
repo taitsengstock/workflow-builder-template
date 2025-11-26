@@ -13,10 +13,11 @@
  * 1. Delete the plugin directory
  * 2. Run: pnpm discover-plugins (or it runs automatically on build)
  * 
- * Discovered plugins: firecrawl, resend
+ * Discovered plugins: firecrawl, linear, resend
  */
 
 import "./firecrawl";
+import "./linear";
 import "./resend";
 
 export type { IntegrationPlugin } from "./registry";

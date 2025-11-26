@@ -8,9 +8,9 @@ import type {
   firecrawlScrapeStep,
   firecrawlSearchStep,
 } from "../../plugins/firecrawl";
+import type { createTicketStep } from "../../plugins/linear";
 import type { sendEmailStep } from "../../plugins/resend";
 import type { conditionStep } from "./condition";
-import type { createTicketStep } from "./create-ticket";
 import type { databaseQueryStep } from "./database-query";
 import type { generateImageStep } from "./generate-image";
 import type { generateTextStep } from "./generate-text";
@@ -44,11 +44,11 @@ export const stepRegistry: Record<string, StepFunction> = {
       input as Parameters<typeof sendSlackMessageStep>[0]
     ),
   "Create Ticket": async (input) =>
-    (await import("./create-ticket")).createTicketStep(
+    (await import("../../plugins/linear")).createTicketStep(
       input as Parameters<typeof createTicketStep>[0]
     ),
   "Find Issues": async (input) =>
-    (await import("./create-ticket")).createTicketStep(
+    (await import("../../plugins/linear")).createTicketStep(
       input as Parameters<typeof createTicketStep>[0]
     ), // TODO: Implement separate findIssuesStep
   "Generate Text": async (input) =>

@@ -100,7 +100,7 @@ async function executeActionStep(input: {
     return await sendSlackMessageStep(stepInput as any);
   }
   if (actionType === "Create Ticket") {
-    const { createTicketStep } = await import("./steps/create-ticket");
+    const { createTicketStep } = await import("../plugins/linear");
     // biome-ignore lint/suspicious/noExplicitAny: Dynamic step input type
     return await createTicketStep(stepInput as any);
   }
