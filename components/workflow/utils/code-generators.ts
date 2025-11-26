@@ -8,10 +8,10 @@ import databaseQueryTemplate from "@/lib/codegen-templates/database-query";
 import generateImageTemplate from "@/lib/codegen-templates/generate-image";
 import generateTextTemplate from "@/lib/codegen-templates/generate-text";
 import httpRequestTemplate from "@/lib/codegen-templates/http-request";
-import sendEmailTemplate from "@/lib/codegen-templates/send-email";
 import sendSlackMessageTemplate from "@/lib/codegen-templates/send-slack-message";
 import { scrapeCodegenTemplate } from "@/plugins/firecrawl/codegen/scrape";
 import { searchCodegenTemplate } from "@/plugins/firecrawl/codegen/search";
+import { sendEmailCodegenTemplate } from "@/plugins/resend/codegen/send-email";
 
 // Generate code snippet for a single node
 export const generateNodeCode = (node: {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Map action types to templates
     switch (actionType) {
       case "Send Email":
-        return sendEmailTemplate;
+        return sendEmailCodegenTemplate;
       case "Send Slack Message":
         return sendSlackMessageTemplate;
       case "Create Ticket":

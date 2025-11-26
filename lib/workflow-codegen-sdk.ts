@@ -2,6 +2,7 @@ import "server-only";
 
 import { scrapeCodegenTemplate } from "../plugins/firecrawl/codegen/scrape";
 import { searchCodegenTemplate } from "../plugins/firecrawl/codegen/search";
+import { sendEmailCodegenTemplate } from "../plugins/resend/codegen/send-email";
 // Import codegen templates directly
 import conditionTemplate from "./codegen-templates/condition";
 import createTicketTemplate from "./codegen-templates/create-ticket";
@@ -9,7 +10,6 @@ import databaseQueryTemplate from "./codegen-templates/database-query";
 import generateImageTemplate from "./codegen-templates/generate-image";
 import generateTextTemplate from "./codegen-templates/generate-text";
 import httpRequestTemplate from "./codegen-templates/http-request";
-import sendEmailTemplate from "./codegen-templates/send-email";
 import sendSlackMessageTemplate from "./codegen-templates/send-slack-message";
 import {
   ARRAY_INDEX_PATTERN,
@@ -31,7 +31,7 @@ const FUNCTION_BODY_REGEX =
 
 function loadStepImplementation(actionType: string): string | null {
   const templateMap: Record<string, string> = {
-    "Send Email": sendEmailTemplate,
+    "Send Email": sendEmailCodegenTemplate,
     "Send Slack Message": sendSlackMessageTemplate,
     "Create Ticket": createTicketTemplate,
     "Find Issues": createTicketTemplate, // Uses same template for now

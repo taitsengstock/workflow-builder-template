@@ -90,7 +90,7 @@ async function executeActionStep(input: {
   // Import and execute the appropriate step function
   // Step functions load credentials from process.env themselves
   if (actionType === "Send Email") {
-    const { sendEmailStep } = await import("./steps/send-email");
+    const { sendEmailStep } = await import("../plugins/resend");
     // biome-ignore lint/suspicious/noExplicitAny: Dynamic step input type
     return await sendEmailStep(stepInput as any);
   }

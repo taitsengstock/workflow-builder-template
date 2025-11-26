@@ -1,8 +1,8 @@
 /**
- * Code template for Send Email action step
- * This is a string template used for code generation - keep as string export
+ * Code generation template for Send Email action
+ * Used when exporting workflows to standalone Next.js projects
  */
-export default `import { Resend } from 'resend';
+export const sendEmailCodegenTemplate = `import { Resend } from 'resend';
 
 export async function sendEmailStep(input: {
   fromEmail: string;
@@ -23,3 +23,4 @@ export async function sendEmailStep(input: {
   
   return result;
 }`;
+

@@ -8,6 +8,7 @@ import type {
   firecrawlScrapeStep,
   firecrawlSearchStep,
 } from "../../plugins/firecrawl";
+import type { sendEmailStep } from "../../plugins/resend";
 import type { conditionStep } from "./condition";
 import type { createTicketStep } from "./create-ticket";
 import type { databaseQueryStep } from "./database-query";
@@ -15,7 +16,6 @@ import type { generateImageStep } from "./generate-image";
 import type { generateTextStep } from "./generate-text";
 import type { httpRequestStep } from "./http-request";
 import type { logNodeCompleteStep, logNodeStartStep } from "./logging";
-import type { sendEmailStep } from "./send-email";
 import type { sendSlackMessageStep } from "./send-slack-message";
 
 // Step function type
@@ -36,7 +36,7 @@ export const stepRegistry: Record<string, StepFunction> = {
       input as Parameters<typeof conditionStep>[0]
     ),
   "Send Email": async (input) =>
-    (await import("./send-email")).sendEmailStep(
+    (await import("../../plugins/resend")).sendEmailStep(
       input as Parameters<typeof sendEmailStep>[0]
     ),
   "Send Slack Message": async (input) =>
