@@ -1,5 +1,6 @@
 "use client";
 
+import { useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue } from "jotai";
 import { ArrowUp } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -34,6 +35,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
   const [_currentWorkflowId, setCurrentWorkflowId] = useAtom(currentWorkflowIdAtom);
   const [_currentWorkflowName, setCurrentWorkflowName] = useAtom(currentWorkflowNameAtom);
   const [_selectedNodeId, setSelectedNodeId] = useAtom(selectedNodeAtom);
+  const { fitView } = useReactFlow();
 
   // Filter out placeholder "add" nodes to get real nodes
   const realNodes = nodes.filter((node) => node.type !== "add");
@@ -139,6 +141,10 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
             if (partialData.name) {
               setCurrentWorkflowName(partialData.name);
             }
+            // Fit view after each update to keep all nodes visible
+            setTimeout(() => {
+              fitView({ padding: 0.2, duration: 200 });
+            }, 0);
           },
           existingWorkflow
         );
@@ -276,6 +282,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
       setCurrentWorkflowName,
       setSelectedNodeId,
       onWorkflowCreated,
+      fitView,
     ]
   );
 
