@@ -59,7 +59,11 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
     setIsFocused(true);
   };
 
-  const handleBlur = () => {
+  const handleBlur = (e: React.FocusEvent) => {
+    // Don't collapse if focus is moving to another element within the container
+    if (containerRef.current?.contains(e.relatedTarget as Node)) {
+      return;
+    }
     setIsFocused(false);
     if (!prompt.trim()) {
       setIsExpanded(false);
@@ -289,7 +293,19 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
         <form
           aria-busy={isGenerating}
           aria-label="AI workflow prompt"
-          className="relative flex items-center gap-2 rounded-lg border bg-background pl-3 pr-2 py-2 shadow-lg"
+          className="relative flex items-center gap-2 rounded-lg border bg-background pl-3 pr-2 py-2 shadow-lg cursor-text"
+          onClick={(e) => {
+            // Focus textarea when clicking anywhere in the form (including padding)
+            if (e.target === e.currentTarget || (e.target as HTMLElement).tagName !== 'BUTTON') {
+              inputRef.current?.focus();
+            }
+          }}
+          onMouseDown={(e) => {
+            // Prevent textarea from losing focus when clicking form padding
+            if (e.target === e.currentTarget) {
+              e.preventDefault();
+            }
+          }}
           onSubmit={handleGenerate}
           role="search"
         >
@@ -313,6 +329,12 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleGenerate(e as any);
+                } else if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setPrompt("");
+                  setIsExpanded(false);
+                  setIsFocused(false);
+                  inputRef.current?.blur();
                 }
               }}
               placeholder={isFocused ? "Describe your workflow with natural language..." : "Ask AI..."}
