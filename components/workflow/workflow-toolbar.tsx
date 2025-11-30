@@ -1397,8 +1397,7 @@ function WorkflowIssuesDialog({
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="text-muted-foreground text-sm">
-                This workflow has issues that may cause it to fail. Click on an
-                item to fix it.
+                This workflow has issues that may cause it to fail.
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1413,11 +1412,9 @@ function WorkflowIssuesDialog({
                 </h4>
                 <div className="space-y-2">
                   {brokenReferences.map((broken) => (
-                    <button
-                      className="flex w-full items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-left transition-colors hover:bg-red-500/10"
+                    <div
+                      className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/5 p-3"
                       key={broken.nodeId}
-                      onClick={() => handleGoToStep(broken.nodeId)}
-                      type="button"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-foreground text-sm">
@@ -1437,7 +1434,15 @@ function WorkflowIssuesDialog({
                           ))}
                         </div>
                       </div>
-                    </button>
+                      <Button
+                        className="shrink-0"
+                        onClick={() => handleGoToStep(broken.nodeId)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Fix
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -1452,11 +1457,9 @@ function WorkflowIssuesDialog({
                 </h4>
                 <div className="space-y-2">
                   {missingRequiredFields.map((node) => (
-                    <button
-                      className="flex w-full items-start gap-3 rounded-lg border border-orange-500/20 bg-orange-500/5 p-3 text-left transition-colors hover:bg-orange-500/10"
+                    <div
+                      className="flex items-center gap-3 rounded-lg border border-orange-500/20 bg-orange-500/5 p-3"
                       key={node.nodeId}
-                      onClick={() => handleGoToStep(node.nodeId)}
-                      type="button"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-foreground text-sm">
@@ -1476,7 +1479,15 @@ function WorkflowIssuesDialog({
                           ))}
                         </div>
                       </div>
-                    </button>
+                      <Button
+                        className="shrink-0"
+                        onClick={() => handleGoToStep(node.nodeId)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        Fix
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </div>
