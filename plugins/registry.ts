@@ -36,6 +36,9 @@ export type ActionConfigField = {
   // Default value
   defaultValue?: string;
 
+  // Example value for AI prompt generation
+  example?: string;
+
   // For select fields: list of options
   options?: SelectOption[];
 
@@ -79,10 +82,6 @@ export type PluginAction = {
 
   // Code generation template (the actual template string, not a path)
   codegenTemplate: string;
-
-  // AI prompt template for this action (how to describe to the AI)
-  // Use {key} placeholders for config fields
-  aiPrompt: string;
 };
 
 /**
@@ -413,7 +412,33 @@ export function generateAIActionPrompts(): string {
   for (const plugin of integrationRegistry.values()) {
     for (const action of plugin.actions) {
       const fullId = computeActionId(plugin.type, action.slug);
-      lines.push(`- ${action.label} (${fullId}): ${action.aiPrompt}`);
+
+      // Build example config from configFields
+      const exampleConfig: Record<string, string | number> = {
+        actionType: fullId,
+      };
+
+      for (const field of action.configFields) {
+        // Skip conditional fields in the example
+        if (field.showWhen) continue;
+
+        // Use example, defaultValue, or a sensible default based on type
+        if (field.example !== undefined) {
+          exampleConfig[field.key] = field.example;
+        } else if (field.defaultValue !== undefined) {
+          exampleConfig[field.key] = field.defaultValue;
+        } else if (field.type === "number") {
+          exampleConfig[field.key] = 10;
+        } else if (field.type === "select" && field.options?.[0]) {
+          exampleConfig[field.key] = field.options[0].value;
+        } else {
+          exampleConfig[field.key] = `Your ${field.label.toLowerCase()}`;
+        }
+      }
+
+      lines.push(
+        `- ${action.label} (${fullId}): ${JSON.stringify(exampleConfig)}`
+      );
     }
   }
 

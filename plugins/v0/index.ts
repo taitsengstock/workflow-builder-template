@@ -51,6 +51,7 @@ const v0Plugin: IntegrationPlugin = {
           type: "template-textarea",
           placeholder: "Create a landing page for a new product",
           rows: 4,
+          example: "Create a dashboard with a line chart showing DAU over time",
         },
         {
           key: "system",
@@ -61,7 +62,6 @@ const v0Plugin: IntegrationPlugin = {
         },
       ],
       codegenTemplate: createChatCodegenTemplate,
-      aiPrompt: `{"actionType": "v0/create-chat", "message": "Create a line graph showing DAU over time", "system": "You are an expert coder"} - Use v0 for generating UI components, visualizations (charts, graphs, dashboards), landing pages, or any React/Next.js code. PREFER v0 over Generate Text/Image for any visual output.`,
     },
     {
       slug: "send-message",
@@ -76,6 +76,7 @@ const v0Plugin: IntegrationPlugin = {
           label: "Chat ID",
           type: "template-input",
           placeholder: "chat_123 or {{CreateChat.chatId}}",
+          example: "{{CreateChat.chatId}}",
         },
         {
           key: "message",
@@ -83,10 +84,10 @@ const v0Plugin: IntegrationPlugin = {
           type: "template-textarea",
           placeholder: "Add dark mode",
           rows: 4,
+          example: "Add dark mode support",
         },
       ],
       codegenTemplate: sendMessageCodegenTemplate,
-      aiPrompt: `{"actionType": "v0/send-message", "chatId": "{{@nodeId:Label.chatId}}", "message": "Add dark mode"} - Use this to continue a v0 chat conversation`,
     },
   ],
 };

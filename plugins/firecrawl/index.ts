@@ -52,10 +52,10 @@ const firecrawlPlugin: IntegrationPlugin = {
           label: "URL",
           type: "template-input",
           placeholder: "https://example.com or {{NodeName.url}}",
+          example: "https://example.com",
         },
       ],
       codegenTemplate: scrapeCodegenTemplate,
-      aiPrompt: `{"actionType": "firecrawl/scrape", "url": "https://example.com"}`,
     },
     {
       slug: "search",
@@ -70,6 +70,7 @@ const firecrawlPlugin: IntegrationPlugin = {
           label: "Search Query",
           type: "template-input",
           placeholder: "Search query or {{NodeName.query}}",
+          example: "latest AI news",
         },
         {
           key: "limit",
@@ -77,10 +78,10 @@ const firecrawlPlugin: IntegrationPlugin = {
           type: "number",
           placeholder: "10",
           min: 1,
+          example: "10",
         },
       ],
       codegenTemplate: searchCodegenTemplate,
-      aiPrompt: `{"actionType": "firecrawl/search", "query": "search query", "limit": 10}`,
     },
   ],
 };

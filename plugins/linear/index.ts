@@ -62,6 +62,7 @@ const linearPlugin: IntegrationPlugin = {
           label: "Ticket Title",
           type: "template-input",
           placeholder: "Bug report or {{NodeName.title}}",
+          example: "Bug: Login button not working",
         },
         {
           key: "ticketDescription",
@@ -70,6 +71,7 @@ const linearPlugin: IntegrationPlugin = {
           placeholder:
             "Description. Use {{NodeName.field}} to insert data from previous nodes.",
           rows: 4,
+          example: "Users are unable to click the login button on mobile.",
         },
         {
           key: "ticketPriority",
@@ -86,7 +88,6 @@ const linearPlugin: IntegrationPlugin = {
         },
       ],
       codegenTemplate: createTicketCodegenTemplate,
-      aiPrompt: `{"actionType": "linear/create-ticket", "ticketTitle": "Title", "ticketDescription": "Description", "ticketPriority": "2"}`,
     },
     {
       slug: "find-issues",
@@ -131,7 +132,6 @@ const linearPlugin: IntegrationPlugin = {
         },
       ],
       codegenTemplate: findIssuesCodegenTemplate,
-      aiPrompt: `{"actionType": "linear/find-issues", "linearStatus": "in_progress"}`,
     },
   ],
 };

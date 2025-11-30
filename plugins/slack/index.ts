@@ -51,6 +51,7 @@ const slackPlugin: IntegrationPlugin = {
           label: "Channel",
           type: "text",
           placeholder: "#general or {{NodeName.channel}}",
+          example: "#general",
         },
         {
           key: "slackMessage",
@@ -59,10 +60,10 @@ const slackPlugin: IntegrationPlugin = {
           placeholder:
             "Your message. Use {{NodeName.field}} to insert data from previous nodes.",
           rows: 4,
+          example: "Hello from my workflow!",
         },
       ],
       codegenTemplate: sendSlackMessageCodegenTemplate,
-      aiPrompt: `{"actionType": "slack/send-message", "slackChannel": "#general", "slackMessage": "Message"}`,
     },
   ],
 };

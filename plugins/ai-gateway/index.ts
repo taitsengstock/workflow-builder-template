@@ -96,6 +96,7 @@ const aiGatewayPlugin: IntegrationPlugin = {
           placeholder:
             "Enter your prompt here. Use {{NodeName.field}} to reference previous outputs.",
           rows: 4,
+          example: "Summarize the following text: {{Scrape.markdown}}",
         },
         {
           key: "aiSchema",
@@ -105,7 +106,6 @@ const aiGatewayPlugin: IntegrationPlugin = {
         },
       ],
       codegenTemplate: generateTextCodegenTemplate,
-      aiPrompt: `{"actionType": "ai-gateway/generate-text", "aiModel": "meta/llama-4-scout", "aiFormat": "text", "aiPrompt": "Your prompt here"}`,
     },
     {
       slug: "generate-image",
@@ -136,10 +136,10 @@ const aiGatewayPlugin: IntegrationPlugin = {
           placeholder:
             "Describe the image you want to generate. Use {{NodeName.field}} to reference previous outputs.",
           rows: 4,
+          example: "A serene mountain landscape at sunset",
         },
       ],
       codegenTemplate: generateImageCodegenTemplate,
-      aiPrompt: `{"actionType": "ai-gateway/generate-image", "imageModel": "google/imagen-4.0-generate", "imagePrompt": "Image description"}`,
     },
   ],
 };

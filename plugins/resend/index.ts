@@ -60,12 +60,14 @@ const resendPlugin: IntegrationPlugin = {
           label: "To (Email Address)",
           type: "template-input",
           placeholder: "user@example.com or {{NodeName.email}}",
+          example: "user@example.com",
         },
         {
           key: "emailSubject",
           label: "Subject",
           type: "template-input",
           placeholder: "Subject or {{NodeName.title}}",
+          example: "Hello from my workflow",
         },
         {
           key: "emailBody",
@@ -73,10 +75,10 @@ const resendPlugin: IntegrationPlugin = {
           type: "template-textarea",
           placeholder: "Email content or {{NodeName.description}}",
           rows: 5,
+          example: "This is the email body content.",
         },
       ],
       codegenTemplate: sendEmailCodegenTemplate,
-      aiPrompt: `{"actionType": "resend/send-email", "emailTo": "user@example.com", "emailSubject": "Subject", "emailBody": "Body"}`,
     },
   ],
 };
