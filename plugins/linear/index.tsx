@@ -2,8 +2,6 @@ import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { createTicketCodegenTemplate } from "./codegen/create-ticket";
 import { findIssuesCodegenTemplate } from "./codegen/find-issues";
-import { CreateTicketConfigFields } from "./steps/create-ticket/config";
-import { FindIssuesConfigFields } from "./steps/find-issues/config";
 
 const linearPlugin: IntegrationPlugin = {
   type: "linear",
@@ -36,7 +34,8 @@ const linearPlugin: IntegrationPlugin = {
       placeholder: "Will use first team if not specified",
       configKey: "teamId",
       envVar: "LINEAR_TEAM_ID",
-      helpText: "The team ID to create issues in. Leave blank to use your first team.",
+      helpText:
+        "The team ID to create issues in. Leave blank to use your first team.",
     },
   ],
 
@@ -59,7 +58,35 @@ const linearPlugin: IntegrationPlugin = {
       category: "Linear",
       stepFunction: "createTicketStep",
       stepImportPath: "create-ticket",
-      configFields: CreateTicketConfigFields,
+      configFields: [
+        {
+          key: "ticketTitle",
+          label: "Ticket Title",
+          type: "template-input",
+          placeholder: "Bug report or {{NodeName.title}}",
+        },
+        {
+          key: "ticketDescription",
+          label: "Description",
+          type: "template-textarea",
+          placeholder:
+            "Description. Use {{NodeName.field}} to insert data from previous nodes.",
+          rows: 4,
+        },
+        {
+          key: "ticketPriority",
+          label: "Priority",
+          type: "select",
+          defaultValue: "2",
+          options: [
+            { value: "0", label: "No Priority" },
+            { value: "1", label: "Urgent" },
+            { value: "2", label: "High" },
+            { value: "3", label: "Normal" },
+            { value: "4", label: "Low" },
+          ],
+        },
+      ],
       codegenTemplate: createTicketCodegenTemplate,
       aiPrompt: `{"actionType": "linear/create-ticket", "ticketTitle": "Title", "ticketDescription": "Description", "ticketPriority": "2"}`,
     },
@@ -70,7 +97,41 @@ const linearPlugin: IntegrationPlugin = {
       category: "Linear",
       stepFunction: "findIssuesStep",
       stepImportPath: "find-issues",
-      configFields: FindIssuesConfigFields,
+      configFields: [
+        {
+          key: "linearAssigneeId",
+          label: "Assignee (User ID)",
+          type: "template-input",
+          placeholder: "user-id-123 or {{NodeName.userId}}",
+        },
+        {
+          key: "linearTeamId",
+          label: "Team ID (optional)",
+          type: "template-input",
+          placeholder: "team-id-456 or {{NodeName.teamId}}",
+        },
+        {
+          key: "linearStatus",
+          label: "Status (optional)",
+          type: "select",
+          defaultValue: "any",
+          placeholder: "Any status",
+          options: [
+            { value: "any", label: "Any" },
+            { value: "backlog", label: "Backlog" },
+            { value: "todo", label: "Todo" },
+            { value: "in_progress", label: "In Progress" },
+            { value: "done", label: "Done" },
+            { value: "canceled", label: "Canceled" },
+          ],
+        },
+        {
+          key: "linearLabel",
+          label: "Label (optional)",
+          type: "template-input",
+          placeholder: "bug, feature, etc. or {{NodeName.label}}",
+        },
+      ],
       codegenTemplate: findIssuesCodegenTemplate,
       aiPrompt: `{"actionType": "linear/find-issues", "linearStatus": "in_progress"}`,
     },
@@ -81,4 +142,3 @@ const linearPlugin: IntegrationPlugin = {
 registerIntegration(linearPlugin);
 
 export default linearPlugin;
-

@@ -18,6 +18,7 @@ import {
   getActionsByCategory,
   getAllIntegrations,
 } from "@/plugins";
+import { ActionConfigRenderer } from "./action-config-renderer";
 import { SchemaBuilder, type SchemaField } from "./schema-builder";
 
 type ActionConfigProps = {
@@ -388,11 +389,12 @@ export function ActionConfig({
         />
       )}
 
-      {/* Plugin actions - dynamic config fields */}
+      {/* Plugin actions - declarative config fields */}
       {pluginAction && !SYSTEM_ACTION_IDS.includes(actionType) && (
-        <pluginAction.configFields
+        <ActionConfigRenderer
           config={config}
           disabled={disabled}
+          fields={pluginAction.configFields}
           onUpdateConfig={handlePluginUpdateConfig}
         />
       )}

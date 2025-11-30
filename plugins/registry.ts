@@ -2,6 +2,57 @@ import type { IntegrationType } from "@/lib/types/integration";
 import { LEGACY_ACTION_MAPPINGS } from "./legacy-mappings";
 
 /**
+ * Select Option
+ * Used for select/dropdown fields
+ */
+export type SelectOption = {
+  value: string;
+  label: string;
+};
+
+/**
+ * Action Config Field
+ * Declarative definition of a config field for an action
+ */
+export type ActionConfigField = {
+  // Unique key for this field in the config object
+  key: string;
+
+  // Human-readable label
+  label: string;
+
+  // Field type
+  type:
+    | "template-input" // TemplateBadgeInput - supports {{variable}}
+    | "template-textarea" // TemplateBadgeTextarea - supports {{variable}}
+    | "text" // Regular text input
+    | "number" // Number input
+    | "select" // Dropdown select
+    | "schema-builder"; // Schema builder for structured output
+
+  // Placeholder text
+  placeholder?: string;
+
+  // Default value
+  defaultValue?: string;
+
+  // For select fields: list of options
+  options?: SelectOption[];
+
+  // Number of rows (for textarea)
+  rows?: number;
+
+  // Min value (for number fields)
+  min?: number;
+
+  // Conditional rendering: only show if another field has a specific value
+  showWhen?: {
+    field: string;
+    equals: string;
+  };
+};
+
+/**
  * Action Definition
  * Describes a single action provided by a plugin
  */
@@ -23,12 +74,8 @@ export type PluginAction = {
   stepFunction: string; // Name of the exported function in the step file
   stepImportPath: string; // Path to import from, relative to plugins/[plugin-name]/steps/
 
-  // Config fields for the action
-  configFields: React.ComponentType<{
-    config: Record<string, unknown>;
-    onUpdateConfig: (key: string, value: unknown) => void;
-    disabled?: boolean;
-  }>;
+  // Config fields for the action (declarative definition)
+  configFields: ActionConfigField[];
 
   // Code generation template (the actual template string, not a path)
   codegenTemplate: string;

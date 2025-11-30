@@ -2,7 +2,6 @@ import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { sendEmailCodegenTemplate } from "./codegen/send-email";
 import { ResendIcon } from "./icon";
-import { SendEmailConfigFields } from "./steps/send-email/config";
 
 const resendPlugin: IntegrationPlugin = {
   type: "resend",
@@ -59,7 +58,27 @@ const resendPlugin: IntegrationPlugin = {
       category: "Resend",
       stepFunction: "sendEmailStep",
       stepImportPath: "send-email",
-      configFields: SendEmailConfigFields,
+      configFields: [
+        {
+          key: "emailTo",
+          label: "To (Email Address)",
+          type: "template-input",
+          placeholder: "user@example.com or {{NodeName.email}}",
+        },
+        {
+          key: "emailSubject",
+          label: "Subject",
+          type: "template-input",
+          placeholder: "Subject or {{NodeName.title}}",
+        },
+        {
+          key: "emailBody",
+          label: "Body",
+          type: "template-textarea",
+          placeholder: "Email content or {{NodeName.description}}",
+          rows: 5,
+        },
+      ],
       codegenTemplate: sendEmailCodegenTemplate,
       aiPrompt: `{"actionType": "resend/send-email", "emailTo": "user@example.com", "emailSubject": "Subject", "emailBody": "Body"}`,
     },
@@ -70,4 +89,3 @@ const resendPlugin: IntegrationPlugin = {
 registerIntegration(resendPlugin);
 
 export default resendPlugin;
-

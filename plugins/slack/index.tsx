@@ -1,7 +1,6 @@
 import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { sendSlackMessageCodegenTemplate } from "./codegen/send-slack-message";
-import { SendSlackMessageConfigFields } from "./steps/send-slack-message/config";
 
 const slackPlugin: IntegrationPlugin = {
   type: "slack",
@@ -48,7 +47,22 @@ const slackPlugin: IntegrationPlugin = {
       category: "Slack",
       stepFunction: "sendSlackMessageStep",
       stepImportPath: "send-slack-message",
-      configFields: SendSlackMessageConfigFields,
+      configFields: [
+        {
+          key: "slackChannel",
+          label: "Channel",
+          type: "text",
+          placeholder: "#general or {{NodeName.channel}}",
+        },
+        {
+          key: "slackMessage",
+          label: "Message",
+          type: "template-textarea",
+          placeholder:
+            "Your message. Use {{NodeName.field}} to insert data from previous nodes.",
+          rows: 4,
+        },
+      ],
       codegenTemplate: sendSlackMessageCodegenTemplate,
       aiPrompt: `{"actionType": "slack/send-message", "slackChannel": "#general", "slackMessage": "Message"}`,
     },
@@ -59,4 +73,3 @@ const slackPlugin: IntegrationPlugin = {
 registerIntegration(slackPlugin);
 
 export default slackPlugin;
-

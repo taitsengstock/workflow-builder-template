@@ -3,8 +3,6 @@ import { registerIntegration } from "../registry";
 import { createChatCodegenTemplate } from "./codegen/create-chat";
 import { sendMessageCodegenTemplate } from "./codegen/send-message";
 import { V0Icon } from "./icon";
-import { CreateChatConfigFields } from "./steps/create-chat/config";
-import { SendMessageConfigFields } from "./steps/send-message/config";
 
 const v0Plugin: IntegrationPlugin = {
   type: "v0",
@@ -50,7 +48,22 @@ const v0Plugin: IntegrationPlugin = {
       category: "v0",
       stepFunction: "createChatStep",
       stepImportPath: "create-chat",
-      configFields: CreateChatConfigFields,
+      configFields: [
+        {
+          key: "message",
+          label: "Message",
+          type: "template-textarea",
+          placeholder: "Create a landing page for a new product",
+          rows: 4,
+        },
+        {
+          key: "system",
+          label: "System Prompt (Optional)",
+          type: "template-textarea",
+          placeholder: "You are an expert coder",
+          rows: 3,
+        },
+      ],
       codegenTemplate: createChatCodegenTemplate,
       aiPrompt: `{"actionType": "v0/create-chat", "message": "Create a line graph showing DAU over time", "system": "You are an expert coder"} - Use v0 for generating UI components, visualizations (charts, graphs, dashboards), landing pages, or any React/Next.js code. PREFER v0 over Generate Text/Image for any visual output.`,
     },
@@ -61,7 +74,21 @@ const v0Plugin: IntegrationPlugin = {
       category: "v0",
       stepFunction: "sendMessageStep",
       stepImportPath: "send-message",
-      configFields: SendMessageConfigFields,
+      configFields: [
+        {
+          key: "chatId",
+          label: "Chat ID",
+          type: "template-input",
+          placeholder: "chat_123 or {{CreateChat.chatId}}",
+        },
+        {
+          key: "message",
+          label: "Message",
+          type: "template-textarea",
+          placeholder: "Add dark mode",
+          rows: 4,
+        },
+      ],
       codegenTemplate: sendMessageCodegenTemplate,
       aiPrompt: `{"actionType": "v0/send-message", "chatId": "{{@nodeId:Label.chatId}}", "message": "Add dark mode"} - Use this to continue a v0 chat conversation`,
     },
@@ -72,4 +99,3 @@ const v0Plugin: IntegrationPlugin = {
 registerIntegration(v0Plugin);
 
 export default v0Plugin;
-

@@ -3,8 +3,6 @@ import { registerIntegration } from "../registry";
 import { scrapeCodegenTemplate } from "./codegen/scrape";
 import { searchCodegenTemplate } from "./codegen/search";
 import { FirecrawlIcon } from "./icon";
-import { ScrapeConfigFields } from "./steps/scrape/config";
-import { SearchConfigFields } from "./steps/search/config";
 
 const firecrawlPlugin: IntegrationPlugin = {
   type: "firecrawl",
@@ -52,7 +50,14 @@ const firecrawlPlugin: IntegrationPlugin = {
       category: "Firecrawl",
       stepFunction: "firecrawlScrapeStep",
       stepImportPath: "scrape",
-      configFields: ScrapeConfigFields,
+      configFields: [
+        {
+          key: "url",
+          label: "URL",
+          type: "template-input",
+          placeholder: "https://example.com or {{NodeName.url}}",
+        },
+      ],
       codegenTemplate: scrapeCodegenTemplate,
       aiPrompt: `{"actionType": "firecrawl/scrape", "url": "https://example.com"}`,
     },
@@ -63,7 +68,21 @@ const firecrawlPlugin: IntegrationPlugin = {
       category: "Firecrawl",
       stepFunction: "firecrawlSearchStep",
       stepImportPath: "search",
-      configFields: SearchConfigFields,
+      configFields: [
+        {
+          key: "query",
+          label: "Search Query",
+          type: "template-input",
+          placeholder: "Search query or {{NodeName.query}}",
+        },
+        {
+          key: "limit",
+          label: "Result Limit",
+          type: "number",
+          placeholder: "10",
+          min: 1,
+        },
+      ],
       codegenTemplate: searchCodegenTemplate,
       aiPrompt: `{"actionType": "firecrawl/search", "query": "search query", "limit": 10}`,
     },

@@ -3,8 +3,6 @@ import { registerIntegration } from "../registry";
 import { generateImageCodegenTemplate } from "./codegen/generate-image";
 import { generateTextCodegenTemplate } from "./codegen/generate-text";
 import { AiGatewayIcon } from "./icon";
-import { GenerateImageConfigFields } from "./steps/generate-image/config";
-import { GenerateTextConfigFields } from "./steps/generate-text/config";
 
 const aiGatewayPlugin: IntegrationPlugin = {
   type: "ai-gateway",
@@ -61,7 +59,61 @@ const aiGatewayPlugin: IntegrationPlugin = {
       category: "AI Gateway",
       stepFunction: "generateTextStep",
       stepImportPath: "generate-text",
-      configFields: GenerateTextConfigFields,
+      configFields: [
+        {
+          key: "aiFormat",
+          label: "Output Format",
+          type: "select",
+          defaultValue: "text",
+          options: [
+            { value: "text", label: "Text" },
+            { value: "object", label: "Object" },
+          ],
+        },
+        {
+          key: "aiModel",
+          label: "Model",
+          type: "select",
+          defaultValue: "meta/llama-4-scout",
+          options: [
+            { value: "anthropic/claude-opus-4.5", label: "Claude Opus 4.5" },
+            { value: "anthropic/claude-sonnet-4.0", label: "Claude Sonnet 4.0" },
+            {
+              value: "anthropic/claude-3.5-sonnet-20241022",
+              label: "Claude 3.5 Sonnet",
+            },
+            { value: "anthropic/claude-3-7-sonnet", label: "Claude 3.7 Sonnet" },
+            { value: "openai/gpt-4o", label: "GPT-4o" },
+            { value: "openai/gpt-4o-mini", label: "GPT-4o Mini" },
+            { value: "openai/o1", label: "o1" },
+            { value: "openai/o1-mini", label: "o1 Mini" },
+            { value: "openai/gpt-4-turbo", label: "GPT-4 Turbo" },
+            { value: "openai/gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
+            { value: "google/gemini-4.0-flash", label: "Gemini 4.0 Flash" },
+            { value: "google/gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+            {
+              value: "google/gemini-2.0-flash-lite",
+              label: "Gemini 2.0 Flash Lite",
+            },
+            { value: "meta/llama-4-scout", label: "Llama 4 Scout" },
+            { value: "meta/llama-4-instruct", label: "Llama 4 Instruct" },
+          ],
+        },
+        {
+          key: "aiPrompt",
+          label: "Prompt",
+          type: "template-textarea",
+          placeholder:
+            "Enter your prompt here. Use {{NodeName.field}} to reference previous outputs.",
+          rows: 4,
+        },
+        {
+          key: "aiSchema",
+          label: "Schema",
+          type: "schema-builder",
+          showWhen: { field: "aiFormat", equals: "object" },
+        },
+      ],
       codegenTemplate: generateTextCodegenTemplate,
       aiPrompt: `{"actionType": "ai-gateway/generate-text", "aiModel": "meta/llama-4-scout", "aiFormat": "text", "aiPrompt": "Your prompt here"}`,
     },
@@ -72,7 +124,30 @@ const aiGatewayPlugin: IntegrationPlugin = {
       category: "AI Gateway",
       stepFunction: "generateImageStep",
       stepImportPath: "generate-image",
-      configFields: GenerateImageConfigFields,
+      configFields: [
+        {
+          key: "imageModel",
+          label: "Model",
+          type: "select",
+          defaultValue: "google/imagen-4.0-generate",
+          options: [
+            {
+              value: "google/imagen-4.0-generate",
+              label: "Imagen 4.0 (Google)",
+            },
+            { value: "openai/dall-e-3", label: "DALL-E 3 (OpenAI)" },
+            { value: "openai/dall-e-2", label: "DALL-E 2 (OpenAI)" },
+          ],
+        },
+        {
+          key: "imagePrompt",
+          label: "Prompt",
+          type: "template-textarea",
+          placeholder:
+            "Describe the image you want to generate. Use {{NodeName.field}} to reference previous outputs.",
+          rows: 4,
+        },
+      ],
       codegenTemplate: generateImageCodegenTemplate,
       aiPrompt: `{"actionType": "ai-gateway/generate-image", "imageModel": "google/imagen-4.0-generate", "imagePrompt": "Image description"}`,
     },
