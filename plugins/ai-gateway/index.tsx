@@ -1,4 +1,3 @@
-import { Image, Sparkles } from "lucide-react";
 import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { generateImageCodegenTemplate } from "./codegen/generate-image";
@@ -74,7 +73,6 @@ const aiGatewayPlugin: IntegrationPlugin = {
       label: "Generate Text",
       description: "Generate text using AI models",
       category: "AI Gateway",
-      icon: Sparkles,
       stepFunction: "generateTextStep",
       stepImportPath: "generate-text",
       configFields: GenerateTextConfigFields,
@@ -86,7 +84,6 @@ const aiGatewayPlugin: IntegrationPlugin = {
       label: "Generate Image",
       description: "Generate images using AI models",
       category: "AI Gateway",
-      icon: Image,
       stepFunction: "generateImageStep",
       stepImportPath: "generate-image",
       configFields: GenerateImageConfigFields,

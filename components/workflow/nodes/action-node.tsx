@@ -159,9 +159,6 @@ const getProviderLogo = (actionType: string) => {
         return <SvgIcon className="size-12" />;
       }
     }
-    // Fall back to action icon if no integration icon
-    const ActionIcon = action.icon;
-    return <ActionIcon className="size-12" />;
   }
 
   // Fallback for unknown actions

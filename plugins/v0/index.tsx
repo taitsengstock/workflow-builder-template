@@ -1,4 +1,3 @@
-import { MessageSquarePlus, Send } from "lucide-react";
 import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { createChatCodegenTemplate } from "./codegen/create-chat";
@@ -63,7 +62,6 @@ const v0Plugin: IntegrationPlugin = {
       label: "Create Chat",
       description: "Create a new chat in v0",
       category: "v0",
-      icon: MessageSquarePlus,
       stepFunction: "createChatStep",
       stepImportPath: "create-chat",
       configFields: CreateChatConfigFields,
@@ -75,7 +73,6 @@ const v0Plugin: IntegrationPlugin = {
       label: "Send Message",
       description: "Send a message to an existing v0 chat",
       category: "v0",
-      icon: Send,
       stepFunction: "sendMessageStep",
       stepImportPath: "send-message",
       configFields: SendMessageConfigFields,

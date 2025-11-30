@@ -25,7 +25,7 @@ export const LEGACY_ACTION_MAPPINGS: Record<string, string> = {
   "Find Issues": "linear/find-issues",
 
   // Slack
-  "Send Slack Message": "slack/send-slack-message",
+  "Send Slack Message": "slack/send-message",
 
   // v0
   "Create Chat": "v0/create-chat",

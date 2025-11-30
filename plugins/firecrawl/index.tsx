@@ -1,4 +1,3 @@
-import { Flame, Search } from "lucide-react";
 import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { scrapeCodegenTemplate } from "./codegen/scrape";
@@ -65,7 +64,6 @@ const firecrawlPlugin: IntegrationPlugin = {
       label: "Scrape URL",
       description: "Scrape content from a URL",
       category: "Firecrawl",
-      icon: Flame,
       stepFunction: "firecrawlScrapeStep",
       stepImportPath: "scrape",
       configFields: ScrapeConfigFields,
@@ -77,7 +75,6 @@ const firecrawlPlugin: IntegrationPlugin = {
       label: "Search Web",
       description: "Search the web with Firecrawl",
       category: "Firecrawl",
-      icon: Search,
       stepFunction: "firecrawlSearchStep",
       stepImportPath: "search",
       configFields: SearchConfigFields,

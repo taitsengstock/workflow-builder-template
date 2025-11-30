@@ -1,4 +1,3 @@
-import { MessageSquare } from "lucide-react";
 import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { sendSlackMessageCodegenTemplate } from "./codegen/send-slack-message";
@@ -61,7 +60,6 @@ const slackPlugin: IntegrationPlugin = {
       label: "Send Slack Message",
       description: "Send a message to a Slack channel",
       category: "Slack",
-      icon: MessageSquare,
       stepFunction: "sendSlackMessageStep",
       stepImportPath: "send-slack-message",
       configFields: SendSlackMessageConfigFields,

@@ -1,4 +1,3 @@
-import { Search, Ticket } from "lucide-react";
 import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { createTicketCodegenTemplate } from "./codegen/create-ticket";
@@ -75,7 +74,6 @@ const linearPlugin: IntegrationPlugin = {
       label: "Create Ticket",
       description: "Create an issue in Linear",
       category: "Linear",
-      icon: Ticket,
       stepFunction: "createTicketStep",
       stepImportPath: "create-ticket",
       configFields: CreateTicketConfigFields,
@@ -87,7 +85,6 @@ const linearPlugin: IntegrationPlugin = {
       label: "Find Issues",
       description: "Search for issues in Linear",
       category: "Linear",
-      icon: Search,
       stepFunction: "findIssuesStep",
       stepImportPath: "find-issues",
       configFields: FindIssuesConfigFields,

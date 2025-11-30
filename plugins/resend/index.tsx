@@ -1,4 +1,3 @@
-import { Mail } from "lucide-react";
 import type { IntegrationPlugin } from "../registry";
 import { registerIntegration } from "../registry";
 import { sendEmailCodegenTemplate } from "./codegen/send-email";
@@ -75,7 +74,6 @@ const resendPlugin: IntegrationPlugin = {
       label: "Send Email",
       description: "Send an email via Resend",
       category: "Resend",
-      icon: Mail,
       stepFunction: "sendEmailStep",
       stepImportPath: "send-email",
       configFields: SendEmailConfigFields,

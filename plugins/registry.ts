@@ -19,9 +19,6 @@ export type PluginAction = {
   // Category for grouping in UI
   category: string;
 
-  // Icon component for this action
-  icon: React.ComponentType<{ className?: string }>;
-
   // Step configuration
   stepFunction: string; // Name of the exported function in the step file
   stepImportPath: string; // Path to import from, relative to plugins/[plugin-name]/steps/
