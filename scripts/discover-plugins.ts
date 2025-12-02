@@ -198,20 +198,17 @@ async function updateReadme(): Promise<void> {
 
 /**
  * Generate the lib/types/integration.ts file with dynamic types
+ * Takes discovered plugin names instead of relying on registry imports
  */
-async function generateTypesFile(): Promise<void> {
+function generateTypesFile(plugins: string[]): void {
   // Ensure the types directory exists
   const typesDir = dirname(TYPES_FILE);
   if (!existsSync(typesDir)) {
     mkdirSync(typesDir, { recursive: true });
   }
 
-  // Get plugin types from registry
-  const { getIntegrationTypes } = await import("@/plugins/registry");
-  const pluginTypes = getIntegrationTypes();
-
   // Combine plugin types with system types
-  const allTypes = [...pluginTypes, ...SYSTEM_INTEGRATION_TYPES].sort();
+  const allTypes = [...plugins, ...SYSTEM_INTEGRATION_TYPES].sort();
 
   // Generate the union type
   const unionType = allTypes.map((t) => `  | "${t}"`).join("\n");
@@ -754,14 +751,14 @@ async function main(): Promise<void> {
     }
   }
 
-  console.log("\nGenerating plugins/index.ts...");
+  console.log("\nGenerating lib/types/integration.ts...");
+  generateTypesFile(plugins);
+
+  console.log("Generating plugins/index.ts...");
   generateIndexFile(plugins);
 
   console.log("Updating README.md...");
   await updateReadme();
-
-  console.log("Generating lib/types/integration.ts...");
-  await generateTypesFile();
 
   console.log("Generating lib/step-registry.ts...");
   await generateStepRegistry();
