@@ -13,7 +13,7 @@
  * 1. Delete the plugin directory
  * 2. Run: pnpm discover-plugins (or it runs automatically on build)
  *
- * Discovered plugins: ai-gateway, firecrawl, linear, resend, slack, superagent, v0
+ * Discovered plugins: ai-gateway, firecrawl, linear, resend, slack, superagent, v0, web3
  */
 
 import "./ai-gateway";
@@ -23,6 +23,7 @@ import "./resend";
 import "./slack";
 import "./superagent";
 import "./v0";
+import "./web3";
 
 export type {
   ActionConfigField,

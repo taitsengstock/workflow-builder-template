@@ -7,7 +7,7 @@
  * Contains auto-generated codegen templates for steps with stepHandler.
  * These templates are used when exporting workflows to standalone projects.
  *
- * Generated templates: 12
+ * Generated templates: 13
  */
 
 /**
@@ -163,8 +163,7 @@ export async function generateImageStep(
 }
 `,
 
-  "firecrawl/scrape": `import FirecrawlApp from "@mendable/firecrawl-js";
-import { fetchCredentials } from "./lib/credential-helper";
+  "firecrawl/scrape": `import { fetchCredentials } from "./lib/credential-helper";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -193,14 +192,32 @@ export async function firecrawlScrapeStep(
   }
 
   try {
-    const firecrawl = new FirecrawlApp({ apiKey });
-    const result = await firecrawl.scrape(input.url, {
-      formats: input.formats || ["markdown"],
+    const response = await fetch(\`\${FIRECRAWL_API_URL}/scrape\`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`Bearer \${apiKey}\`,
+      },
+      body: JSON.stringify({
+        url: input.url,
+        formats: input.formats || ["markdown"],
+      }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(\`HTTP \${response.status}: \${errorText}\`);
+    }
+
+    const result = (await response.json()) as FirecrawlScrapeResponse;
+
+    if (!result.success) {
+      throw new Error(result.error || "Scrape failed");
+    }
+
     return {
-      markdown: result.markdown,
-      metadata: result.metadata,
+      markdown: result.data?.markdown,
+      metadata: result.data?.metadata,
     };
   } catch (error) {
     throw new Error(\`Failed to scrape: \${getErrorMessage(error)}\`);
@@ -208,8 +225,7 @@ export async function firecrawlScrapeStep(
 }
 `,
 
-  "firecrawl/search": `import FirecrawlApp from "@mendable/firecrawl-js";
-import { fetchCredentials } from "./lib/credential-helper";
+  "firecrawl/search": `import { fetchCredentials } from "./lib/credential-helper";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -217,7 +233,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 type SearchResult = {
-  web?: unknown[];
+  data?: unknown[];
 };
 
 export type FirecrawlSearchCoreInput = {
@@ -240,14 +256,32 @@ export async function firecrawlSearchStep(
   }
 
   try {
-    const firecrawl = new FirecrawlApp({ apiKey });
-    const result = await firecrawl.search(input.query, {
-      limit: input.limit ? Number(input.limit) : undefined,
-      scrapeOptions: input.scrapeOptions,
+    const response = await fetch(\`\${FIRECRAWL_API_URL}/search\`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`Bearer \${apiKey}\`,
+      },
+      body: JSON.stringify({
+        query: input.query,
+        limit: input.limit ? Number(input.limit) : undefined,
+        scrapeOptions: input.scrapeOptions,
+      }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(\`HTTP \${response.status}: \${errorText}\`);
+    }
+
+    const result = (await response.json()) as FirecrawlSearchResponse;
+
+    if (!result.success) {
+      throw new Error(result.error || "Search failed");
+    }
+
     return {
-      web: result.web,
+      data: result.data,
     };
   } catch (error) {
     throw new Error(\`Failed to search: \${getErrorMessage(error)}\`);
@@ -255,8 +289,7 @@ export async function firecrawlSearchStep(
 }
 `,
 
-  "linear/create-ticket": `import { LinearClient } from "@linear/sdk";
-import { fetchCredentials } from "./lib/credential-helper";
+  "linear/create-ticket": `import { fetchCredentials } from "./lib/credential-helper";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -289,12 +322,22 @@ export async function createTicketStep(
   }
 
   try {
-    const linear = new LinearClient({ apiKey });
-
     let targetTeamId = teamId;
+
     if (!targetTeamId) {
-      const teams = await linear.teams();
-      const firstTeam = teams.nodes[0];
+      const teamsResult = await linearQuery<TeamsQueryResponse>(
+        apiKey,
+        \`query { teams { nodes { id name } } }\`,
+      );
+
+      if (teamsResult.errors?.length) {
+        return {
+          success: false,
+          error: teamsResult.errors[0].message,
+        };
+      }
+
+      const firstTeam = teamsResult.data?.teams.nodes[0];
       if (!firstTeam) {
         return {
           success: false,
@@ -304,14 +347,33 @@ export async function createTicketStep(
       targetTeamId = firstTeam.id;
     }
 
-    const issuePayload = await linear.createIssue({
-      title: input.ticketTitle,
-      description: input.ticketDescription,
-      teamId: targetTeamId,
-    });
+    const createResult = await linearQuery<CreateIssueMutationResponse>(
+      apiKey,
+      \`mutation CreateIssue($title: String!, $description: String, $teamId: String!) {
+        issueCreate(input: { title: $title, description: $description, teamId: $teamId }) {
+          success
+          issue {
+            id
+            title
+            url
+          }
+        }
+      }\`,
+      {
+        title: input.ticketTitle,
+        description: input.ticketDescription,
+        teamId: targetTeamId,
+      },
+    );
 
-    const issue = await issuePayload.issue;
+    if (createResult.errors?.length) {
+      return {
+        success: false,
+        error: createResult.errors[0].message,
+      };
+    }
 
+    const issue = createResult.data?.issueCreate.issue;
     if (!issue) {
       return {
         success: false,
@@ -334,8 +396,7 @@ export async function createTicketStep(
 }
 `,
 
-  "linear/find-issues": `import { LinearClient } from "@linear/sdk";
-import { fetchCredentials } from "./lib/credential-helper";
+  "linear/find-issues": `import { fetchCredentials } from "./lib/credential-helper";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -369,8 +430,7 @@ export async function findIssuesStep(
   }
 
   try {
-    const linear = new LinearClient({ apiKey });
-
+    // Build filter object for Linear's GraphQL API
     const filter: Record<string, unknown> = {};
 
     if (input.linearAssigneeId) {
@@ -389,19 +449,40 @@ export async function findIssuesStep(
       filter.labels = { name: { eqIgnoreCase: input.linearLabel } };
     }
 
-    const issues = await linear.issues({ filter });
+    const result = await linearQuery<IssuesQueryResponse>(
+      apiKey,
+      \`query FindIssues($filter: IssueFilter) {
+        issues(filter: $filter) {
+          nodes {
+            id
+            title
+            url
+            priority
+            assigneeId
+            state {
+              name
+            }
+          }
+        }
+      }\`,
+      { filter: Object.keys(filter).length > 0 ? filter : undefined },
+    );
 
-    const mappedIssues: LinearIssue[] = await Promise.all(
-      issues.nodes.map(async (issue) => {
-        const state = await issue.state;
-        return {
-          id: issue.id,
-          title: issue.title,
-          url: issue.url,
-          state: state?.name || "Unknown",
-          priority: issue.priority,
-          assigneeId: issue.assigneeId || undefined,
-        };
+    if (result.errors?.length) {
+      return {
+        success: false,
+        error: result.errors[0].message,
+      };
+    }
+
+    const mappedIssues: LinearIssue[] = (result.data?.issues.nodes || []).map(
+      (issue) => ({
+        id: issue.id,
+        title: issue.title,
+        url: issue.url,
+        state: issue.state?.name || "Unknown",
+        priority: issue.priority,
+        assigneeId: issue.assigneeId || undefined,
       }),
     );
 
@@ -515,8 +596,7 @@ export async function sendEmailStep(
 }
 `,
 
-  "slack/send-message": `import { WebClient } from "@slack/web-api";
-import { fetchCredentials } from "./lib/credential-helper";
+  "slack/send-message": `import { fetchCredentials } from "./lib/credential-helper";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -548,12 +628,26 @@ export async function sendSlackMessageStep(
   }
 
   try {
-    const slack = new WebClient(apiKey);
-
-    const result = await slack.chat.postMessage({
-      channel: input.slackChannel,
-      text: input.slackMessage,
+    const response = await fetch(\`\${SLACK_API_URL}/chat.postMessage\`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`Bearer \${apiKey}\`,
+      },
+      body: JSON.stringify({
+        channel: input.slackChannel,
+        text: input.slackMessage,
+      }),
     });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: \`HTTP \${response.status}: Failed to send Slack message\`,
+      };
+    }
+
+    const result = (await response.json()) as SlackPostMessageResponse;
 
     if (!result.ok) {
       return {
@@ -836,6 +930,140 @@ export async function sendMessageStep(
     return {
       success: false,
       error: \`Failed to send message: \${getErrorMessage(error)}\`,
+    };
+  }
+}
+`,
+
+  "web3/transfer-funds": `import { eq } from "drizzle-orm";
+import { ethers } from "ethers";
+import { fetchCredentials } from "./lib/credential-helper";
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+type TransferFundsResult =
+  | { success: true; transactionHash: string }
+  | { success: false; error: string };
+
+export type TransferFundsCoreInput = {
+  amount: string;
+  recipientAddress: string;
+};
+
+export async function transferFundsStep(
+  input: TransferFundsInput,
+): Promise<TransferFundsResult> {
+  "use step";
+  const credentials = await fetchCredentials("web3");
+  const { amount, recipientAddress, _context } = input;
+
+  console.log("[Transfer Funds] Step called", {
+    hasAmount: !!amount,
+    hasRecipient: !!recipientAddress,
+    hasContext: !!_context,
+    executionId: _context?.executionId,
+  });
+
+  // Validate recipient address
+  if (!ethers.isAddress(recipientAddress)) {
+    console.log("[Transfer Funds] Invalid recipient address");
+    return {
+      success: false,
+      error: \`Invalid recipient address: \${recipientAddress}\`,
+    };
+  }
+
+  // Validate amount
+  if (!amount || amount.trim() === "") {
+    console.log("[Transfer Funds] Amount missing");
+    return {
+      success: false,
+      error: "Amount is required",
+    };
+  }
+
+  let amountInWei: bigint;
+  try {
+    amountInWei = ethers.parseEther(amount);
+  } catch (error) {
+    console.log("[Transfer Funds] Amount parse error", error);
+    return {
+      success: false,
+      error: \`Invalid amount format: \${getErrorMessage(error)}\`,
+    };
+  }
+
+  // Get userId from executionId (passed via _context)
+  if (!_context?.executionId) {
+    console.log("[Transfer Funds] Missing executionId");
+    return {
+      success: false,
+      error: "Execution ID is required to identify the user",
+    };
+  }
+
+  let userId: string;
+  try {
+    userId = await getUserIdFromExecution(_context.executionId);
+    console.log("[Transfer Funds] Got userId:", userId);
+  } catch (error) {
+    console.log("[Transfer Funds] Failed to get userId", error);
+    return {
+      success: false,
+      error: \`Failed to get user ID: \${getErrorMessage(error)}\`,
+    };
+  }
+
+  // Sepolia testnet RPC URL
+  // TODO: Make this configurable in the future
+  const SEPOLIA_RPC_URL = "https://chain.techops.services/eth-sepolia";
+
+  let signer;
+  try {
+    console.log("[Transfer Funds] Initializing signer");
+    signer = await initializeParaSigner(userId, SEPOLIA_RPC_URL);
+    console.log("[Transfer Funds] Signer initialized");
+  } catch (error) {
+    console.log("[Transfer Funds] Signer init failed", error);
+    return {
+      success: false,
+      error: \`Failed to initialize wallet: \${getErrorMessage(error)}\`,
+    };
+  }
+
+  // Send transaction
+  try {
+    console.log("[Transfer Funds] Sending transaction");
+    const tx = await signer.sendTransaction({
+      to: recipientAddress,
+      value: amountInWei,
+    });
+
+    console.log("[Transfer Funds] Transaction sent, waiting for receipt");
+    // Wait for transaction to be mined
+    const receipt = await tx.wait();
+
+    if (!receipt) {
+      console.log("[Transfer Funds] No receipt");
+      return {
+        success: false,
+        error: "Transaction sent but receipt not available",
+      };
+    }
+
+    console.log("[Transfer Funds] Success, tx hash:", receipt.hash);
+    return {
+      success: true,
+      transactionHash: receipt.hash,
+    };
+  } catch (error) {
+    console.log("[Transfer Funds] Transaction failed", error);
+    return {
+      success: false,
+      error: \`Transaction failed: \${getErrorMessage(error)}\`,
     };
   }
 }
